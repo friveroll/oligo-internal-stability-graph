@@ -24,3 +24,4 @@ def test_get_delta_g_pentamers():
     oligo = 'ATGCGT'
     delta_g = single_oligo.get_delta_g_pentamers(oligo)
     assert delta_g == [-10.1, -9.9]
+
