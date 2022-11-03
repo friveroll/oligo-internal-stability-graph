@@ -1,12 +1,16 @@
 import re
 import matplotlib.pyplot as plt
+from decimal import Decimal
+import decimal
+
+decimal.getcontext().prec = 3
 
 
 def get_oligo_kmers(sequence, k):
     """Get all possible substrings of length k contained within a biological sequence  
 
     :param str sequence a text string with a nucleotide sequence
-    :param int k an integer representing the frequency k-mer
+    :param int k an integer greater than 1 representing the frequency k-mer 
     :return list a list of all possible k-mers
 
     Usage examples:
@@ -15,6 +19,11 @@ def get_oligo_kmers(sequence, k):
     >>> get_oligo_kmers("ACTTGGGATTGGGCT", 5)
     ['ACTTG', 'CTTGG', 'TTGGG', 'TGGGA', 'GGGAT', 'GGATT', 'GATTG', 'ATTGG', 'TTGGG', 'TGGGC', 'GGGCT']
     """
+    if k < 2:
+        raise ValueError("k must be greater than 1")
+    if k > len(sequence):
+        raise ValueError("k must be less than the length of the sequence")
+
     return [sequence[i:i+k] for i in range(len(sequence)) if len(sequence[i:i+k]) == k]
 
 
@@ -26,13 +35,20 @@ def get_delta_g(sequence):
 
     Usage examples:
     >>> get_delta_g('ACTTG')
-    -6.700000000000001
+    -6.7
     """
+    if not isinstance(sequence, str):
+        raise TypeError("sequence  must be a string for an oligonucleotide")
+    if not bool(re.compile('^[ACTG]+$').match(sequence)):
+        raise ValueError("sequence must contain only A, C, T, G")
+
     near_pairs_delta_g = {'AA': -1.9, 'AC': -1.3, 'AG': -1.6, 'AT': -1.5,
                           'CA': -1.9, 'CC': -3.1, 'CG': -3.6, 'CT': -1.6,
                           'GA': -1.6, 'GC': -3.1, 'GG': -3.1, 'GT': -1.3,
                           'TA': -1.0, 'TC': -1.6, 'TG': -1.9, 'TT': -1.9}
-    return sum([near_pairs_delta_g.get(dimer) for dimer in get_oligo_kmers(sequence, 2)])
+    delta_g = sum([Decimal(near_pairs_delta_g.get(dimer))
+                  for dimer in get_oligo_kmers(sequence, 2)])
+    return float(delta_g)
 
 
 def get_delta_g_pentamers(sequence):
